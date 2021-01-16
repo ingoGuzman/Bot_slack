@@ -47,17 +47,26 @@ def message(payload):
 	"""
 	# Get event data from payload
 	event = payload.get("event", {})
-	#Get the text
-	text=event.get("text")
-	user=event.get("user")
-	sl_channel=event.get("channel")
-	blocks=event.get("blocks")
-	now = datetime.now()
-	dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+	if (event.get("user") != "U01C4EKLL0N"):
+		#Get the text
+		text=event.get("text")
+		if text.startswith("!retrieve"):
+			print ("retrievepo")
+			channel.basic_publish(exchange="nestor", routing_key="retrieve", body=text)
+		else:
+			user_id=str(event.get("user"))
+			nameFetch = slack_web_client.users_info(user=user_id)
+			user = nameFetch.get("user")
+			name = user.get("name")
+			sl_channel=event.get("channel")
+			blocks=event.get("blocks")
+			now = datetime.now()
+			dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+			dt_search_string = now.strftime("%d/%m/%Y")
 
-	m=json.dumps({"usuario" : user, "texto" : text, "fecha" : dt_string, "canal" : sl_channel, "bloques" : blocks})
-	print(m)
-	channel.basic_publish(exchange="nestor", routing_key="intake", body=m)
+			m=json.dumps({"usuario" : name, "texto" : text, "fecha" : dt_string, "fechaB" : dt_search_string, "canal" : sl_channel, "bloques" : blocks})
+			print(m)
+			channel.basic_publish(exchange="nestor", routing_key="intake", body=m)
 
 if __name__=="__main__":
 	#create the logging object
